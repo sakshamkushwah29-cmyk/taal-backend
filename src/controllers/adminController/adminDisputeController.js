@@ -42,9 +42,17 @@ const searchBookings = catchAsync(async (req, res, next) => {
 });
 
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
+let _razorpay;
+const razorpay = new Proxy({}, {
+    get(target, prop) {
+        if (!_razorpay) {
+            _razorpay = new Razorpay({
+                key_id: process.env.RAZORPAY_KEY_ID || 'placeholder',
+                key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder',
+            });
+        }
+        return _razorpay[prop];
+    }
 });
 
 const checkPaymentStatus = catchAsync(async (req, res, next) => {

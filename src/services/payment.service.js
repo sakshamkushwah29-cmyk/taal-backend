@@ -4,9 +4,17 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const ENVIRONMENT = require('../config/env');
 
-const razorpay = new Razorpay({
-    key_id: ENVIRONMENT.RAZORPAY_KEY_ID,
-    key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET
+let _razorpay;
+const razorpay = new Proxy({}, {
+    get(target, prop) {
+        if (!_razorpay) {
+            _razorpay = new Razorpay({
+                key_id: ENVIRONMENT.RAZORPAY_KEY_ID || 'placeholder',
+                key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET || 'placeholder',
+            });
+        }
+        return _razorpay[prop];
+    }
 });
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });

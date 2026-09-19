@@ -223,9 +223,17 @@ exports.bookTickets = catchAsync(async (req, res, next) => {
 });
 */
 
-const razorpay = new Razorpay({
-    key_id: ENVIRONMENT.RAZORPAY_KEY_ID,
-    key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET,
+let _razorpay;
+const razorpay = new Proxy({}, {
+    get(target, prop) {
+        if (!_razorpay) {
+            _razorpay = new Razorpay({
+                key_id: ENVIRONMENT.RAZORPAY_KEY_ID || 'placeholder',
+                key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET || 'placeholder',
+            });
+        }
+        return _razorpay[prop];
+    }
 });
 /**
 exports.bookTickets = catchAsync(async (req, res, next) => {

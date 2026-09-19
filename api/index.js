@@ -5,11 +5,15 @@ const ENVIRONMENT = require("../src/config/env");
 let isConnected = false;
 
 module.exports = async (req, res) => {
-  if (!isConnected) {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(ENVIRONMENT.MONGO_URI);
+  if (!isConnected && ENVIRONMENT.MONGO_URI && mongoose.connection.readyState === 0) {
+    try {
+      await mongoose.connect(ENVIRONMENT.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+      });
+      isConnected = true;
+    } catch (err) {
+      console.error("MongoDB connection error in serverless:", err.message);
     }
-    isConnected = true;
   }
   return app(req, res);
 };
