@@ -24,6 +24,8 @@ const allowedOrigins = [
     "https://taal.life",
     "https://www.taal.life",
     "https://admin.taal.life",
+    "https://taal-frontend.vercel.app",
+    "https://taal-admin-panel.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
 ];
@@ -35,6 +37,7 @@ const corsOptions = {
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (origin.endsWith(".vercel.app")) return callback(null, true);
         if (isDevelopment && localhostRegex.test(origin)) return callback(null, true);
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
