@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: taal-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/v1/test
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://taal-frontend.vercel.app
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_R9t8A3fmwznlTG
+      - key: RAZORPAY_KEY_SECRET
+        value: qPbuM4Z7JWrOl4kUChlKf08Y
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dhcjqoy1y
+      - key: CLOUDINARY_API_KEY
+        value: 471446417654999
+      - key: CLOUDINARY_API_SECRET
+        value: AycMCj-j56of1NOSgjU_siquAw8
+      - key: CLOUDINARY_FOLDER
+        value: tickets
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        value: taaleventss@gmail.com
+      - key: SMTP_PASS
+        value: skqjbuyyvqdtmiaz
+      - key: MONGO_URI
+        sync: false
