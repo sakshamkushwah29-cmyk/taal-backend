@@ -12,10 +12,17 @@ setupSocket(server); // Attach socket to server
 const PORT = ENVIRONMENT.PORT || 8080;
 const DB = ENVIRONMENT.MONGO_URI;
 
-mongoose
-    .connect(DB)
-    .then(() => {
-        console.log("MongoDB connected");
-        server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-    })
-    .catch((err) => console.error("MongoDB Error:", err));
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+if (DB) {
+    mongoose
+        .connect(DB)
+        .then(() => {
+            console.log("MongoDB connected successfully");
+        })
+        .catch((err) => console.error("MongoDB connection error:", err.message));
+} else {
+    console.warn("WARNING: MONGO_URI is not set in environment variables!");
+}
