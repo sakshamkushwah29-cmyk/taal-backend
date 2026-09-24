@@ -23,24 +23,26 @@ const userRateLimiter = require("../middlewares/rateLimiter");
 
 
 
+const protectUser = protect('user', 'event_manager', 'superadmin', 'gatekeeper');
+
 router.post('/create-user', authController.createUser);
 router.post('/upload-avatar', uploadUserProfile, authController.uploadAvatar);
 router.put('/verify-email-with-link', authController.verifyEmailWithLink);
 router.post('/resend-verification-email', authController.resendVerificationEmail);
 router.post('/login-user', authController.loginUser);
-router.get('/get-user-profile', protect('user'), authController.getUserProfile);
-router.put('/update-user-profile', protect('user'), authController.updateUserProfile);
-router.put('/change-password', protect('user'), authController.changePassword);
+router.get('/get-user-profile', protectUser, authController.getUserProfile);
+router.put('/update-user-profile', protectUser, authController.updateUserProfile);
+router.put('/change-password', protectUser, authController.changePassword);
 router.post('/forget-password', authController.forgetPassowrd);
 router.put('/reset-password', authController.resetPassword);
-router.post('/create-address', protect('user'), userAuthController.createAddress);
+router.post('/create-address', protectUser, userAuthController.createAddress);
 
 /** ==================== Address Routes ==================== */
-router.post('/add-address', protect('user'), userAuthController.createAddress);
-router.get('/get-all-address', protect('user'), userAuthController.getAllAddresses);
-router.get('/get-address-by-id', protect('user'), userAuthController.getAddressById);
-router.put('/update-address', protect('user'), userAuthController.updateAddress);
-router.put('/delete-address', protect('user'), userAuthController.deleteAddress);
+router.post('/add-address', protectUser, userAuthController.createAddress);
+router.get('/get-all-address', protectUser, userAuthController.getAllAddresses);
+router.get('/get-address-by-id', protectUser, userAuthController.getAddressById);
+router.put('/update-address', protectUser, userAuthController.updateAddress);
+router.put('/delete-address', protectUser, userAuthController.deleteAddress);
 
 /** event Details Routes */
 router.get('/get-all-events', eventManagementController.getAllEvents);
@@ -48,45 +50,45 @@ router.get('/get-event', eventManagementController.getEvent);
 router.get('/get-event-session', eventManagementController.getEventSessionBySessionId);
 
 /** Ticket Booking Routes */
-router.post('/book-tickets', protect('user'), TicketBookingController.bookTickets);
-router.post('/verify-ticket-payment', protect('user'), TicketBookingController.verifyTicketPayment);
-router.get('/get-all-ticket-bookings', protect('user'), TicketBookingController.getTicketBookings);
-router.get('/get-booking-by-id', protect('user'), TicketBookingController.getBookingById);
+router.post('/book-tickets', protectUser, TicketBookingController.bookTickets);
+router.post('/verify-ticket-payment', protectUser, TicketBookingController.verifyTicketPayment);
+router.get('/get-all-ticket-bookings', protectUser, TicketBookingController.getTicketBookings);
+router.get('/get-booking-by-id', protectUser, TicketBookingController.getBookingById);
 
 
 /** Cart Management */
 
-router.post('/add-to-cart', protect('user'), cartController.addToCart);
-router.get('/get-cart', protect('user'), cartController.getCart);
-router.put('/remove-item-from-cart', protect('user'), cartController.removeItemFromCart);
-router.put('/clear-cart', protect('user'), cartController.clearCart);
-router.put('/update-item-quantity', protect('user'), cartController.updateItemQuantity);
+router.post('/add-to-cart', protectUser, cartController.addToCart);
+router.get('/get-cart', protectUser, cartController.getCart);
+router.put('/remove-item-from-cart', protectUser, cartController.removeItemFromCart);
+router.put('/clear-cart', protectUser, cartController.clearCart);
+router.put('/update-item-quantity', protectUser, cartController.updateItemQuantity);
 
 /** Buy Product Routes */
 
 router.get('/get-products', buyProductController.saleProductList);
 router.get('/get-product-details', buyProductController.getSaleProductById);
-// router.post('/buy-product', protect('user'), buyProductController.buyProduct);
+// router.post('/buy-product', protectUser, buyProductController.buyProduct);
 
 
-router.post('/buy-now', protect('user'), buyProductController.buyNow);
-router.post('/buy-from-cart', protect('user'), buyProductController.placeOrderFromCart);
-router.get('/preview-checkout', protect('user'), buyProductController.previewCheckout);
-router.post('/verify-razorpay-payment', protect('user'), paymentController.verifyRazorpayPayment);
-router.get('/my-orders', protect('user'), buyProductController.getMyOrders);
-router.get('/order-details', protect('user'), buyProductController.getMyOrderById);
+router.post('/buy-now', protectUser, buyProductController.buyNow);
+router.post('/buy-from-cart', protectUser, buyProductController.placeOrderFromCart);
+router.get('/preview-checkout', protectUser, buyProductController.previewCheckout);
+router.post('/verify-razorpay-payment', protectUser, paymentController.verifyRazorpayPayment);
+router.get('/my-orders', protectUser, buyProductController.getMyOrders);
+router.get('/order-details', protectUser, buyProductController.getMyOrderById);
 
 
 
 /** =================== Rent Product Routes ================ */
 router.get('/get-rent-products', rentBookingController.rentProductList);
 router.get('/get-rent-product-details', rentBookingController.getRentProductById);
-router.post('/rent-now', protect('user'), validateBody(bookingValidation.rentNowValidation), rentBookingController.rentNow);
-router.post('/verify-rent-payment', protect('user'), rentBookingController.verifyRentPayment);
+router.post('/rent-now', protectUser, validateBody(bookingValidation.rentNowValidation), rentBookingController.rentNow);
+router.post('/verify-rent-payment', protectUser, rentBookingController.verifyRentPayment);
 
 /**=================== Rent Product Cart Routes ================ */
-router.post('/add-to-rent-cart', protect('user'), validateBody(bookingValidation.addRentalCartValidation), rentCartController.addItemToRentCart);
-router.get('/get-rent-cart', protect('user'), rentCartController.getRentCart);
+router.post('/add-to-rent-cart', protectUser, validateBody(bookingValidation.addRentalCartValidation), rentCartController.addItemToRentCart);
+router.get('/get-rent-cart', protectUser, rentCartController.getRentCart);
 
 
 

@@ -41,7 +41,12 @@ const protect = (...allowedRoles) => {
 
             // ✅ Role check
             if (allowedRoles.length && !allowedRoles.includes(findUser.role)) {
-                return next(new AppError("You do not have permission to perform this action", 403));
+                // Allow admin and staff accounts (event_manager, superadmin, gatekeeper) to also perform consumer user actions
+                if (allowedRoles.includes("user") && ["superadmin", "event_manager", "gatekeeper"].includes(findUser.role)) {
+                    // Allowed as consumer
+                } else {
+                    return next(new AppError("You do not have permission to perform this action", 403));
+                }
             }
             // ✅ Attach user to request
             req.userId = decoded.id;
