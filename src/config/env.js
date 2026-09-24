@@ -33,6 +33,8 @@ const ENVIRONMENT = {
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "471446417654999",
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "AycMCj-j56of1NOSgjU_siquAw8",
     CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER || "tickets",
+    COMPOSIO_API_KEY: process.env.COMPOSIO_API_KEY || "ak_6MOV0SgIC8Jtr_mveyx1",
+    COMPOSIO_ENTITY_ID: process.env.COMPOSIO_ENTITY_ID || "pg-test-290de9bb-ee27-4d5e-8648-3925543fabc1",
 };
 
 module.exports = ENVIRONMENT;

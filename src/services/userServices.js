@@ -89,7 +89,7 @@ class UserService {
         });
 
         if (!mailResult.success) {
-            throw new AppError("Failed to send verification email. Please try again later.", 500);
+            throw new AppError(`Failed to send verification email: ${mailResult.error || "Please try again later."}`, 500);
         }
 
         return { email: user.email };

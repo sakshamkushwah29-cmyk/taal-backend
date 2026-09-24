@@ -35,5 +35,9 @@ services:
         value: taaleventss@gmail.com
       - key: SMTP_PASS
         value: skqjbuyyvqdtmiaz
+      - key: COMPOSIO_API_KEY
+        value: ak_6MOV0SgIC8Jtr_mveyx1
+      - key: COMPOSIO_ENTITY_ID
+        value: pg-test-290de9bb-ee27-4d5e-8648-3925543fabc1
       - key: MONGO_URI
         sync: false
