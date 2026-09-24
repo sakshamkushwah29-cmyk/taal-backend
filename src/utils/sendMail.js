@@ -1,24 +1,26 @@
 const nodemailer = require("nodemailer");
 const ENVIRONMENT = require("../config/env");
 
-const transporter = nodemailer.createTransport({
-    host: ENVIRONMENT.SMTP_HOST || "smtp.gmail.com",
-    port: ENVIRONMENT.SMTP_PORT || 587,
-    secure: false,
-    auth: {
-        user: ENVIRONMENT.SMTP_USER,
-        pass: ENVIRONMENT.SMTP_PASS,
-    },
-});
+const smtpUser = ENVIRONMENT.SMTP_USER || "taaleventss@gmail.com";
+const smtpPass = ENVIRONMENT.SMTP_PASS || "skqjbuyyvqdtmiaz";
 
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: smtpUser,
+        pass: smtpPass,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+});
 
 async function sendMail({ to, subject, text, template, attachments }) {
     try {
-        // Replace placeholders in template
         const htmlContent = template;
 
         const mailOptions = {
-            from: `"Taal Events" <${ENVIRONMENT.SMTP_USER}>`,
+            from: `"Taal Events" <${smtpUser}>`,
             to,
             subject,
             text,
@@ -27,11 +29,11 @@ async function sendMail({ to, subject, text, template, attachments }) {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.messageId);
+        console.log("Email sent successfully to:", to, "MessageId:", info.messageId);
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error("Error sending email:", error);
-        return { success: false, error };
+        console.error("Error sending email to:", to, error.message || error);
+        return { success: false, error: error.message || error };
     }
 }
 

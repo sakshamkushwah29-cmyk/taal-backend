@@ -7,18 +7,29 @@ const QueryBuilder = require("../../services/queryBuilder");
 const { default: mongoose } = require("mongoose");
 const ENVIRONMENT = require("../../config/env");
 
+const { uploadToCloudinary } = require("../../services/cloudinaryService");
+
 exports.uploadProductImage = catchAsync(async (req, res, next) => {
     if (!req.files || req.files.length === 0) {
         return next(new AppError("No files uploaded", 400));
     }
     let files = req.files;
-    let response = files.map((file) => {
-        return {
-            originalName: file.originalname,
-            fileName: file.filename,
-            url: `${ENVIRONMENT.IMAGE_FILE_PATH}/productImages/${file.filename}`,
-        };
-    });
+    let response = await Promise.all(
+        files.map(async (file) => {
+            let url;
+            try {
+                url = await uploadToCloudinary(file.path, "productImages");
+            } catch (err) {
+                console.error("Cloudinary upload failed, fallback to local URL:", err);
+                url = `${ENVIRONMENT.IMAGE_FILE_PATH || "https://taal-backend-yjs9.onrender.com/uploads"}/productImages/${file.filename}`;
+            }
+            return {
+                originalName: file.originalname,
+                fileName: file.filename,
+                url,
+            };
+        })
+    );
     return successRes(res, 201, true, "File uploaded successfully", response);
 });
 

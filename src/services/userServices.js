@@ -52,14 +52,17 @@ class UserService {
         const template = EmailVerificationTemplate(user.name, verificationLink);
 
         // 5️⃣ Send verification email
-        const mailResult = await sendMail({
-            to: user.email,
-            subject: "Email Verification",
-            template
-        });
-
-        if (!mailResult.success) {
-            throw new AppError("Account created but verification email failed to send. Please use resend verification.", 500);
+        try {
+            const mailResult = await sendMail({
+                to: user.email,
+                subject: "Email Verification - Taal Events",
+                template
+            });
+            if (!mailResult.success) {
+                console.warn("Verification email could not be delivered immediately for:", user.email, mailResult.error);
+            }
+        } catch (mailErr) {
+            console.error("Error sending verification email:", mailErr);
         }
 
         return user;

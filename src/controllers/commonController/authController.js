@@ -23,13 +23,22 @@ exports.createUser = catchAsync(async (req, res, next) => {
     return successRes(res, 201, true, "User created successfully", user);
 });
 
+const { uploadToCloudinary } = require("../../services/cloudinaryService");
+
 exports.uploadAvatar = catchAsync(async (req, res, next) => {
     let file = req.file;
-    let fileUrl = `${ENVIRONMENT.IMAGE_FILE_PATH}/userAvatar/${file.filename}`;
+    if (!file) return next(new AppError("No file uploaded", 400));
+    let url;
+    try {
+        url = await uploadToCloudinary(file.path, "userAvatar");
+    } catch (err) {
+        console.error("Cloudinary upload failed for avatar, fallback to local URL:", err);
+        url = `${ENVIRONMENT.IMAGE_FILE_PATH || "https://taal-backend-yjs9.onrender.com/uploads"}/userAvatar/${file.filename}`;
+    }
     let response = {
         ...file,
-        url: fileUrl,
-    }
+        url,
+    };
     return successRes(res, 201, true, "File uploaded successfully", response);
 });
 

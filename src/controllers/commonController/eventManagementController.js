@@ -8,13 +8,22 @@ const AppError = require("../../utils/AppError");
 const GatekeeperScan = require("../../models/GatekeeperScan");
 const ENVIRONMENT = require("../../config/env.js");
 
+const { uploadToCloudinary } = require("../../services/cloudinaryService");
+
 exports.uploadBannerImage = catchAsync(async (req, res, next) => {
     let file = req.file;
-    let fileUrl = `${ENVIRONMENT.IMAGE_FILE_PATH}/eventBanners/${file.filename}`;
+    if (!file) return next(new AppError("No file uploaded", 400));
+    let url;
+    try {
+        url = await uploadToCloudinary(file.path, "eventBanners");
+    } catch (err) {
+        console.error("Cloudinary upload failed for banner, fallback to local URL:", err);
+        url = `${ENVIRONMENT.IMAGE_FILE_PATH || "https://taal-backend-yjs9.onrender.com/uploads"}/eventBanners/${file.filename}`;
+    }
     let response = {
         ...file,
-        url: fileUrl,
-    }
+        url,
+    };
     return successRes(res, 201, true, "File uploaded successfully", response);
 });
 
@@ -24,15 +33,24 @@ exports.uploadEventImages = catchAsync(async (req, res, next) => {
         return successRes(res, 400, false, "No files uploaded");
     }
 
-    let response = files.map((file) => {
-        return {
-            originalName: file.originalname,
-            fileName: file.filename,
-            mimeType: file.mimetype,
-            size: file.size,
-            url: `${ENVIRONMENT.IMAGE_FILE_PATH}/eventImages/${file.filename}`,
-        };
-    });
+    let response = await Promise.all(
+        files.map(async (file) => {
+            let url;
+            try {
+                url = await uploadToCloudinary(file.path, "eventImages");
+            } catch (err) {
+                console.error("Cloudinary upload failed for event image, fallback to local URL:", err);
+                url = `${ENVIRONMENT.IMAGE_FILE_PATH || "https://taal-backend-yjs9.onrender.com/uploads"}/eventImages/${file.filename}`;
+            }
+            return {
+                originalName: file.originalname,
+                fileName: file.filename,
+                mimeType: file.mimetype,
+                size: file.size,
+                url,
+            };
+        })
+    );
 
     return successRes(res, 201, true, "Files uploaded successfully", response);
 });

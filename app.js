@@ -19,7 +19,11 @@ console.log(ENVIRONMENT.NODE_ENV, "NODEENV")
 
 const app = express();
 app.use('/webhook', webhookRoutes)
-app.use(helmet());
+app.use(
+    helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+);
 const allowedOrigins = [
     "https://taal.life",
     "https://www.taal.life",
@@ -50,7 +54,15 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+    "/uploads",
+    (req, res, next) => {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        next();
+    },
+    express.static(path.join(__dirname, "uploads"))
+);
 
 
 

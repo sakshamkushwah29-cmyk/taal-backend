@@ -16,9 +16,9 @@ services:
       - key: FRONTEND_URL
         value: https://taal-frontend.vercel.app
       - key: RAZORPAY_KEY_ID
-        value: rzp_test_R9t8A3fmwznlTG
+        value: rzp_live_RJ78sILs64v88G
       - key: RAZORPAY_KEY_SECRET
-        value: qPbuM4Z7JWrOl4kUChlKf08Y
+        value: lKEjpXVwhpe1FGEHQ2SD15ys
       - key: CLOUDINARY_CLOUD_NAME
         value: dhcjqoy1y
       - key: CLOUDINARY_API_KEY
