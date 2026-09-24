@@ -3,6 +3,7 @@ const Joi = require("joi");
 const createCategoryValidation = Joi.object({
     name: Joi.string().trim().min(2).max(100).required(),
     description: Joi.string().trim().min(5).max(500).required(),
+    type: Joi.string().valid("rental", "sale", "both").default("both").optional(),
     icon: Joi.string().uri().allow("").optional(),
     parent: Joi.string().hex().length(24).optional(), // MongoDB ObjectId
     isActive: Joi.boolean().default(true)
@@ -16,6 +17,7 @@ const updateCategoryValidation = Joi.object({
     categoryId: Joi.string().hex().length(24).required(),
     name: Joi.string().trim().min(2).max(100).optional(),
     description: Joi.string().trim().min(5).max(500).optional(),
+    type: Joi.string().valid("rental", "sale", "both").optional(),
     icon: Joi.string().uri().allow("").optional(),
     parent: Joi.string().hex().length(24).optional(), // MongoDB ObjectId
     isActive: Joi.boolean().optional()
