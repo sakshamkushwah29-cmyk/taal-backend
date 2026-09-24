@@ -228,8 +228,8 @@ const razorpay = new Proxy({}, {
     get(target, prop) {
         if (!_razorpay) {
             _razorpay = new Razorpay({
-                key_id: ENVIRONMENT.RAZORPAY_KEY_ID || 'placeholder',
-                key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET || 'placeholder',
+                key_id: String(ENVIRONMENT.RAZORPAY_KEY_ID || 'rzp_live_RJ78sILs64v88G').trim(),
+                key_secret: String(ENVIRONMENT.RAZORPAY_KEY_SECRET || 'lKEjpXVwhpe1FGEHQ2SD15ys').trim(),
             });
         }
         return _razorpay[prop];
@@ -448,6 +448,7 @@ exports.bookTickets = catchAsync(async (req, res, next) => {
     return successRes(res, 201, true, "Booking created, complete payment to confirm.", {
         order: razorpayOrder,
         bookingId: booking._id,
+        key: String(ENVIRONMENT.RAZORPAY_KEY_ID || 'rzp_live_RJ78sILs64v88G').trim(),
         breakdown: {
             ticketSubtotal,
             platformFee,
@@ -466,8 +467,9 @@ exports.verifyTicketPayment = catchAsync(async (req, res, next) => {
 
     // ✅ Signature verification
     const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const secret = String(ENVIRONMENT.RAZORPAY_KEY_SECRET || 'lKEjpXVwhpe1FGEHQ2SD15ys').trim();
     const expectedSignature = crypto
-        .createHmac("sha256", ENVIRONMENT.RAZORPAY_KEY_SECRET)
+        .createHmac("sha256", secret)
         .update(body.toString())
         .digest("hex");
 

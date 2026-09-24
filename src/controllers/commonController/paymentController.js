@@ -24,8 +24,8 @@ async function restockOrderItems(items) {
 }
 
 const rpInstance = () => new Razorpay({
-    key_id: ENVIRONMENT.RAZORPAY_KEY_ID,
-    key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET
+    key_id: String(ENVIRONMENT.RAZORPAY_KEY_ID || 'rzp_live_RJ78sILs64v88G').trim(),
+    key_secret: String(ENVIRONMENT.RAZORPAY_KEY_SECRET || 'lKEjpXVwhpe1FGEHQ2SD15ys').trim()
 });
 
 /**
@@ -49,13 +49,11 @@ exports.verifyRazorpayPayment = catchAsync(async (req, res, next) => {
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
         return next(new AppError('razorpay_order_id, razorpay_payment_id and razorpay_signature are required', 400));
     }
-    if (!ENVIRONMENT.RAZORPAY_KEY_SECRET) {
-        return next(new AppError('Server misconfiguration: missing RAZORPAY_KEY_SECRET', 500));
-    }
+    const secret = String(ENVIRONMENT.RAZORPAY_KEY_SECRET || 'lKEjpXVwhpe1FGEHQ2SD15ys').trim();
 
     // 2) verify signature (HMAC SHA256 of order_id|payment_id)
     const generatedSignature = crypto
-        .createHmac('sha256', ENVIRONMENT.RAZORPAY_KEY_SECRET)
+        .createHmac('sha256', secret)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest('hex');
 
