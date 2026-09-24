@@ -520,16 +520,22 @@ exports.buyNow = catchAsync(async (req, res, next) => {
                 gateway
             });
 
+            if (!payment || !payment.razorpayOrder) {
+                throw new AppError("Failed to initialize Razorpay payment order", 500);
+            }
+
             // update order with paymentIntentId for reconciliation
             await SaleOrder.findByIdAndUpdate(order._id, {
                 paymentIntentId: payment?.razorpayOrder?.id || null,
                 paymentGateway: gateway
             });
         }
-        return successRes(res, 201, true, "Order Created Successfull", { status: paymentMethod === 'online' ? 'pending' : 'success', order, payment })
+        return successRes(res, 201, true, "Order Created Successfull", { status: paymentMethod === 'online' ? 'pending' : 'success', order, payment });
 
     } catch (err) {
-        await session.abortTransaction();
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
         session.endSession();
         return next(err);
     }

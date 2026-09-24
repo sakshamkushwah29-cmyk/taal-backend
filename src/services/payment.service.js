@@ -8,10 +8,9 @@ let _razorpay;
 const razorpay = new Proxy({}, {
     get(target, prop) {
         if (!_razorpay) {
-            _razorpay = new Razorpay({
-                key_id: ENVIRONMENT.RAZORPAY_KEY_ID || 'placeholder',
-                key_secret: ENVIRONMENT.RAZORPAY_KEY_SECRET || 'placeholder',
-            });
+            const key_id = String(ENVIRONMENT.RAZORPAY_KEY_ID || 'rzp_live_RJ78sILs64v88G').trim();
+            const key_secret = String(ENVIRONMENT.RAZORPAY_KEY_SECRET || 'lKEjpXVwhpe1FGEHQ2SD15ys').trim();
+            _razorpay = new Razorpay({ key_id, key_secret });
         }
         return _razorpay[prop];
     }
@@ -24,14 +23,24 @@ const razorpay = new Proxy({}, {
  * amount: in rupees (Number) -> razorpay needs paise
  */
 async function createRazorpayOrder({ amount, currency = 'INR', receipt, notes = {} }) {
-    const rpOrder = await razorpay.orders.create({
-        amount: Math.round(amount * 100), // paise
-        currency,
-        receipt: String(receipt),
-        notes,
-        payment_capture: 1 // auto-capture
-    });
-    return rpOrder; // contains id, amount, receipt, etc
+    try {
+        const amountInPaise = Math.round(Number(amount) * 100);
+        console.log("createRazorpayOrder initializing:", { amountInPaise, currency, receipt });
+
+        const rpOrder = await razorpay.orders.create({
+            amount: amountInPaise,
+            currency: currency || 'INR',
+            receipt: String(receipt || Date.now()).slice(0, 40),
+            notes: typeof notes === 'object' && notes !== null ? notes : {},
+            payment_capture: 1
+        });
+
+        console.log("createRazorpayOrder success:", rpOrder.id);
+        return rpOrder;
+    } catch (err) {
+        console.error("createRazorpayOrder error:", err.message || err);
+        throw err;
+    }
 }
 
 /**
