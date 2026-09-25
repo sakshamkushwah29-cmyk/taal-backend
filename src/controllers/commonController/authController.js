@@ -179,3 +179,103 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     const user = await UserService.resetPassword(token, password);
     return successRes(res, 200, true, "Password reset successfully", null);
 });
+
+let clerkClient = null;
+try {
+    const { createClerkClient } = require("@clerk/backend");
+    if (ENVIRONMENT.CLERK_SECRET_KEY) {
+        clerkClient = createClerkClient({
+            secretKey: ENVIRONMENT.CLERK_SECRET_KEY,
+            publishableKey: ENVIRONMENT.CLERK_PUBLISHABLE_KEY
+        });
+    }
+} catch (e) {
+    console.warn("Clerk backend client initialization skipped:", e.message);
+}
+
+exports.syncClerkUser = catchAsync(async (req, res, next) => {
+    let { clerkId, email, name, phone, profilePic } = req.body;
+
+    if (!clerkId && !email) {
+        return next(new AppError("clerkId or email is required", 400));
+    }
+
+    // Optionally fetch user info directly from Clerk if needed
+    if (clerkClient && clerkId && (!email || !name)) {
+        try {
+            const clerkUser = await clerkClient.users.getUser(clerkId);
+            if (clerkUser) {
+                if (!email && clerkUser.emailAddresses?.length > 0) {
+                    email = clerkUser.emailAddresses[0].emailAddress;
+                }
+                if (!name) {
+                    name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || clerkUser.username;
+                }
+                if (!profilePic && clerkUser.imageUrl) {
+                    profilePic = clerkUser.imageUrl;
+                }
+                if (!phone && clerkUser.phoneNumbers?.length > 0) {
+                    phone = clerkUser.phoneNumbers[0].phoneNumber;
+                }
+            }
+        } catch (clerkErr) {
+            console.warn("Could not fetch user details from Clerk API:", clerkErr.message);
+        }
+    }
+
+    const normalizedEmail = email ? email.toLowerCase().trim() : null;
+
+    let user = null;
+    if (clerkId) {
+        user = await User.findOne({ clerkId });
+    }
+    if (!user && normalizedEmail) {
+        user = await User.findOne({ email: normalizedEmail });
+    }
+
+    if (user) {
+        let modified = false;
+        if (!user.clerkId && clerkId) {
+            user.clerkId = clerkId;
+            modified = true;
+        }
+        if (!user.isVerified) {
+            user.isVerified = true;
+            modified = true;
+        }
+        if (name && (!user.name || user.name === "User")) {
+            user.name = name;
+            modified = true;
+        }
+        if (profilePic && !user.profilePic) {
+            user.profilePic = profilePic;
+            modified = true;
+        }
+        if (phone && !user.phone) {
+            user.phone = phone;
+            modified = true;
+        }
+        if (modified) {
+            await user.save();
+        }
+    } else {
+        user = await User.create({
+            name: name || (normalizedEmail ? normalizedEmail.split("@")[0] : "User"),
+            email: normalizedEmail,
+            phone: phone || undefined,
+            profilePic: profilePic || undefined,
+            clerkId,
+            isVerified: true,
+            signupMethod: "clerk",
+            role: "user",
+        });
+    }
+
+    if (user.isBlocked) {
+        return next(new AppError("Your account has been blocked", 403));
+    }
+
+    const token = signToken(user._id, user.email, user.role);
+
+    return successRes(res, 200, true, "User synchronized successfully", { user, token });
+});

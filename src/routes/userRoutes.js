@@ -30,6 +30,7 @@ router.post('/upload-avatar', uploadUserProfile, authController.uploadAvatar);
 router.put('/verify-email-with-link', authController.verifyEmailWithLink);
 router.post('/resend-verification-email', authController.resendVerificationEmail);
 router.post('/login-user', authController.loginUser);
+router.post('/sync-clerk-user', authController.syncClerkUser);
 router.get('/get-user-profile', protectUser, authController.getUserProfile);
 router.put('/update-user-profile', protectUser, authController.updateUserProfile);
 router.put('/change-password', protectUser, authController.changePassword);

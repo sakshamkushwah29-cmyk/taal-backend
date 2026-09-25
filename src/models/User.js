@@ -75,9 +75,15 @@ const UserSchema = new Schema({
         }
     },
     addresses: [{ type: Schema.Types.ObjectId, ref: 'Address' }],
+    clerkId: {
+        type: String,
+        index: true,
+        sparse: true,
+        trim: true
+    },
     signupMethod: {
         type: String,
-        enum: ['email', 'google'],
+        enum: ['email', 'google', 'clerk'],
         default: 'email'
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' }

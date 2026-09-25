@@ -26,10 +26,33 @@ const protect = (...allowedRoles) => {
             }
 
             // ✅ Verify token
-            const decoded = await promisify(jwt.verify)(token, JWT_SECRET);
+            let decoded;
+            let findUser;
+            try {
+                decoded = await promisify(jwt.verify)(token, JWT_SECRET);
+                findUser = await User.findById(decoded.id);
+            } catch (jwtErr) {
+                if (ENVIRONMENT.CLERK_SECRET_KEY) {
+                    try {
+                        const { verifyToken } = require("@clerk/backend");
+                        const clerkPayload = await verifyToken(token, {
+                            secretKey: ENVIRONMENT.CLERK_SECRET_KEY,
+                        });
+                        if (clerkPayload && clerkPayload.sub) {
+                            findUser = await User.findOne({ clerkId: clerkPayload.sub });
+                            if (findUser) {
+                                decoded = { id: findUser._id, email: findUser.email, role: findUser.role, iat: clerkPayload.iat };
+                            }
+                        }
+                    } catch (clerkErr) {
+                        // fallback to error throwing below
+                    }
+                }
+                if (!findUser) {
+                    throw jwtErr;
+                }
+            }
 
-            // ✅ Find user
-            const findUser = await User.findById(decoded.id);
             if (!findUser) {
                 return next(new AppError("The user belonging to this token does not exist.", 401));
             }

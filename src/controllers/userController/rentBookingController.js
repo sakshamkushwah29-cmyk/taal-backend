@@ -402,7 +402,10 @@ exports.getRentProductById = catchAsync(async (req, res, next) => {
         variants,       // full list of computed variants (good for listing/selecting)
         defaultVariantId: selectedVariantId, // UI can use this as the default selected
         selectedVariantId,
-        selectedVariant: selectedVariant || null
+        selectedVariant: selectedVariant || null,
+        rentPricePerDay: product.rentPricePerDay || selectedVariant?.effectivePrice || minPrice || 50,
+        deposit: product.deposit !== undefined && product.deposit !== null ? product.deposit : 450,
+        currency: product.currency || "INR",
     };
 
     return successRes(res, 200, true, "Product found", response);
@@ -415,19 +418,25 @@ exports.getRentProductById = catchAsync(async (req, res, next) => {
 function calculateRentAmount({ product, variant, qty, startDate, endDate }) {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+    const diffTime = Math.abs(end - start);
+    const days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-    // base rent
-    const rent = product.rentPricePerDay * qty * days;
+    // base rent per day
+    const pricePerDay = Number(product.rentPricePerDay) || Number(variant?.effectivePrice) || Number(variant?.discountPrice) || Number(variant?.price) || 50;
+    const rent = pricePerDay * qty * days;
 
-    // deposit (optional)
-    const deposit = product.deposit || 0;
+    // deposit (refundable upon safe return)
+    const depositPerUnit = (product.deposit !== undefined && product.deposit !== null && product.deposit >= 0)
+        ? Number(product.deposit)
+        : 450;
+    const deposit = depositPerUnit * qty;
 
     return {
         total: rent + deposit,
         currency: product.currency || "INR",
         rent,
         deposit,
+        pricePerDay,
         days
     };
 }
@@ -477,7 +486,7 @@ exports.rentNow = catchAsync(async (req, res, next) => {
         await product.save({ session });
 
         // Fetch and validate address for snapshot
-        const address = await Address.findOne({ _id: addressId, user: userId, isDeleted: false }).session(session);
+        const address = await Address.findOne({ _id: addressId, isDeleted: false }).session(session);
         if (!address) throw new AppError('Address not found', 404);
 
         // Calculate rent amounts
